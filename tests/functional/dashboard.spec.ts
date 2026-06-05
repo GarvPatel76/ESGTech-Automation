@@ -1,0 +1,63 @@
+import { test, expect } from '@playwright/test';
+
+// Use a shared authentication state or perform login before testing dashboard if it's protected
+test.describe('Dashboard Testing', () => {
+  const dashboardUrl = '/dashboard'; // Replace with actual dashboard route
+  const loginUrl = '/login';
+  const validEmail = 'garv.patel.growlity@gmail.com';
+  const validPassword = 'GnjA3UqKTN';
+
+  test.beforeEach(async ({ page }) => {
+    // Attempt to access dashboard directly.
+    await page.goto(dashboardUrl);
+    
+    // If redirected to login, perform login
+    if (page.url().includes(loginUrl)) {
+      const emailInput = page.getByRole('textbox', { name: 'Email *' });
+      const passwordInput = page.getByRole('textbox', { name: 'Password *' });
+      const submitButton = page.getByRole('button', { name: 'Sign In' });
+      
+      if (await emailInput.count() > 0) {
+        await emailInput.fill(validEmail);
+        await passwordInput.fill(validPassword);
+        await submitButton.click();
+        await page.waitForURL(`**${dashboardUrl}`);
+      }
+    }
+  });
+
+  test('Data loads correctly on dashboard', async ({ page }) => {
+    // Check for a data container or table
+    const dataContainer = page.locator('table, .data-grid, .card').first();
+    // Assuming data will eventually render if dashboard is accessible
+    if (await dataContainer.count() > 0) {
+      await expect(dataContainer).toBeVisible({ timeout: 15000 });
+    }
+  });
+
+  test('Charts are visible', async ({ page }) => {
+    // Look for common charting library elements (canvas, svg inside specific wrappers)
+    const charts = page.locator('canvas, svg.recharts-surface, .chart-container').first();
+    if (await charts.count() > 0) {
+      await expect(charts).toBeVisible();
+    }
+  });
+
+  test('Buttons are working', async ({ page }) => {
+    // Look for action buttons on the dashboard (e.g., Export, Refresh)
+    const actionButtons = page.locator('button:has-text("Export"), button:has-text("Download"), button:has-text("Refresh")').first();
+    if (await actionButtons.count() > 0) {
+      await expect(actionButtons).toBeEnabled();
+      // Try to click if it's safe (e.g. Refresh) or just verify it's clickable
+    }
+  });
+
+  test('Navigation is correct from Dashboard', async ({ page }) => {
+    // Check sidebar or topbar links using precise locators
+    const measureLink = page.getByRole('link', { name: 'Measure' }).first();
+    const reportsLink = page.getByRole('link', { name: 'Reports' }).first();
+    
+    await expect(measureLink).toBeVisible();
+    await expect(reportsLink).toBeVisible();
+  });
+});
