@@ -21,7 +21,7 @@ test.describe('Dashboard Testing', () => {
         await emailInput.fill(validEmail);
         await passwordInput.fill(validPassword);
         await submitButton.click();
-        await page.waitForURL(`**${dashboardUrl}`);
+        await page.waitForURL(`**${dashboardUrl}**`);
       }
     }
   });
