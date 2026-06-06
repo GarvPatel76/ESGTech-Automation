@@ -1,13 +1,16 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 
 // Use a shared authentication state or perform login before testing dashboard if it's protected
-test.describe('Dashboard Testing', () => {
+test.describe.serial('Dashboard Testing', () => {
   const dashboardUrl = '/dashboard'; // Replace with actual dashboard route
   const loginUrl = '/login';
   const validEmail = 'garv.patel.growlity@gmail.com';
   const validPassword = 'GnjA3UqKTN';
+  
+  let page: Page;
 
-  test.beforeEach(async ({ page }) => {
+  test.beforeAll(async ({ browser }) => {
+    page = await browser.newPage();
     // Attempt to access dashboard directly.
     await page.goto(dashboardUrl);
     
@@ -28,7 +31,11 @@ test.describe('Dashboard Testing', () => {
     }
   });
 
-  test('Data loads correctly on dashboard', async ({ page }) => {
+  test.afterAll(async () => {
+    await page.close();
+  });
+
+  test('Data loads correctly on dashboard', async () => {
     // Check for a data container or table
     const dataContainer = page.locator('table, .data-grid, .card').first();
     // Assuming data will eventually render if dashboard is accessible
@@ -37,7 +44,7 @@ test.describe('Dashboard Testing', () => {
     }
   });
 
-  test('Charts are visible', async ({ page }) => {
+  test('Charts are visible', async () => {
     // Look for common charting library elements (canvas, svg inside specific wrappers)
     const charts = page.locator('canvas, svg.recharts-surface, .chart-container').first();
     if (await charts.count() > 0) {
@@ -45,7 +52,7 @@ test.describe('Dashboard Testing', () => {
     }
   });
 
-  test('Buttons are working', async ({ page }) => {
+  test('Buttons are working', async () => {
     // Look for action buttons on the dashboard (e.g., Export, Refresh)
     const actionButtons = page.locator('button:has-text("Export"), button:has-text("Download"), button:has-text("Refresh")').first();
     if (await actionButtons.count() > 0) {
@@ -54,7 +61,7 @@ test.describe('Dashboard Testing', () => {
     }
   });
 
-  test('Navigation is correct from Dashboard', async ({ page }) => {
+  test('Navigation is correct from Dashboard', async () => {
     // Check sidebar or topbar links using precise locators
     const measureLink = page.getByRole('link', { name: 'Measure' }).first();
     const reportsLink = page.getByRole('link', { name: 'Reports' }).first();
