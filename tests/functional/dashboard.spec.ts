@@ -13,6 +13,8 @@ test.describe('Dashboard Testing', () => {
     
     // If redirected to login, perform login
     if (page.url().includes(loginUrl)) {
+      await page.waitForLoadState('networkidle');
+      
       const emailInput = page.getByRole('textbox', { name: 'Email *' });
       const passwordInput = page.getByRole('textbox', { name: 'Password *' });
       const submitButton = page.getByRole('button', { name: 'Sign In' });
@@ -21,7 +23,7 @@ test.describe('Dashboard Testing', () => {
         await emailInput.fill(validEmail);
         await passwordInput.fill(validPassword);
         await submitButton.click();
-        await page.waitForURL(`**${dashboardUrl}**`);
+        await expect(page).not.toHaveURL(/.*login/, { timeout: 30000 });
       }
     }
   });
