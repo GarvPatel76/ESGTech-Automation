@@ -16,23 +16,17 @@ test.describe.serial('Dashboard Testing', () => {
     
     // If redirected to login, perform login
     if (page.url().includes(loginUrl)) {
-      // Instead of networkidle which can hang, wait for the login form to be visible or timeout
       const emailInput = page.getByRole('textbox', { name: 'Email *' });
       const passwordInput = page.getByRole('textbox', { name: 'Password *' });
       const submitButton = page.getByRole('button', { name: 'Sign In' });
       
-      try {
-        await emailInput.waitFor({ state: 'visible', timeout: 10000 });
-        // Wait for page hydration (WebKit sometimes ignores clicks before hydration completes)
-        await page.waitForTimeout(2000);
-        await emailInput.fill(validEmail);
-        await passwordInput.fill(validPassword);
-        await submitButton.click();
-        // Wait for navigation, using a smaller timeout than the 30s global hook timeout
-        await expect(page).not.toHaveURL(/.*login/, { timeout: 15000 });
-      } catch (e) {
-        console.log('Login form not found or timed out, skipping login.');
-      }
+      await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+      await emailInput.fill(validEmail);
+      await passwordInput.fill(validPassword);
+      await submitButton.click();
+      
+      // Check if we are redirected to the dashboard or home
+      await expect(page).not.toHaveURL(/.*login/, { timeout: 15000 });
     }
   });
 
