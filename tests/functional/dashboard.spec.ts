@@ -23,7 +23,7 @@ test.describe.serial('Dashboard Testing', () => {
       await emailInput.waitFor({ state: 'visible', timeout: 10000 });
       await emailInput.fill(validEmail);
       await passwordInput.fill(validPassword);
-      await submitButton.click();
+      await passwordInput.press('Enter'); // More robust than clicking, especially on Mobile Safari
       
       // Check if we are redirected to the dashboard or home
       await expect(page).not.toHaveURL(/.*login/, { timeout: 15000 });
