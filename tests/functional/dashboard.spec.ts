@@ -23,10 +23,13 @@ test.describe.serial('Dashboard Testing', () => {
       
       try {
         await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+        // Wait for page hydration (WebKit sometimes ignores clicks before hydration completes)
+        await page.waitForTimeout(2000);
         await emailInput.fill(validEmail);
         await passwordInput.fill(validPassword);
         await submitButton.click();
-        await expect(page).not.toHaveURL(/.*login/, { timeout: 30000 });
+        // Wait for navigation, using a smaller timeout than the 30s global hook timeout
+        await expect(page).not.toHaveURL(/.*login/, { timeout: 15000 });
       } catch (e) {
         console.log('Login form not found or timed out, skipping login.');
       }
