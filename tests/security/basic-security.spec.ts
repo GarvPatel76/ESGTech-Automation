@@ -21,19 +21,27 @@ test.describe('Basic Security Testing', () => {
     }
   });
 
-  test('Session logout validity', async ({ page }) => {
+  test('Session logout validity', async ({ page, browserName }) => {
     // Mocking a flow: Login -> Logout -> Try accessing protected route
     await page.goto('/login');
     const emailInput = page.getByRole('textbox', { name: 'Email *' });
     const passwordInput = page.getByRole('textbox', { name: 'Password *' });
-    const submitButton = page.getByRole('button', { name: 'Sign In' });
 
     if (await emailInput.count() > 0) {
-      await emailInput.fill('garv.patel.growlity@gmail.com');
-      await passwordInput.fill('GnjA3UqKTN');
-      await submitButton.click();
+      if (browserName === 'webkit') {
+        await emailInput.pressSequentially('garv.patel.growlity@gmail.com', { delay: 30 });
+        await passwordInput.pressSequentially('GnjA3UqKTN', { delay: 30 });
+        await page.waitForTimeout(500);
+        await passwordInput.press('Enter');
+      } else {
+        await emailInput.fill('garv.patel.growlity@gmail.com');
+        await passwordInput.fill('GnjA3UqKTN');
+        await passwordInput.press('Enter');
+      }
       
+      // Wait for navigation and network to settle
       await page.waitForLoadState('networkidle');
+      await page.waitForTimeout(1000);
       
       const userMenuButton = page.getByRole('button', { name: 'GP Garv Patel' });
       if (await userMenuButton.count() > 0) {

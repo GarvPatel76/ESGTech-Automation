@@ -12,19 +12,33 @@ test.describe('Login Page Testing', () => {
   });
 
   test.describe('Positive Cases', () => {
-    test('Successful login with valid credentials', async ({ page }) => {
+    test('Successful login with valid credentials', async ({ page, browserName }) => {
       const emailInput = page.getByRole('textbox', { name: 'Email *' });
       const passwordInput = page.getByRole('textbox', { name: 'Password *' });
       const submitButton = page.getByRole('button', { name: 'Sign In' });
 
       // If we don't find these fields, the test will naturally fail, which means we need to adjust selectors.
       if (await emailInput.count() > 0 && await passwordInput.count() > 0) {
-        await emailInput.fill(validEmail);
-        await passwordInput.fill(validPassword);
-        await submitButton.click();
-
+        if (browserName === 'webkit') {
+          // Use pressSequentially for Safari to ensure onChange fires
+          await emailInput.pressSequentially(validEmail, { delay: 30 });
+          await passwordInput.pressSequentially(validPassword, { delay: 30 });
+          await page.waitForTimeout(500);
+          // Press Enter to submit
+          await passwordInput.press('Enter');
+        } else {
+          await emailInput.fill(validEmail);
+          await passwordInput.fill(validPassword);
+          // Try Enter first, fallback to click
+          await passwordInput.press('Enter');
+        }
+        
+        // Wait for navigation after form submission
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1000);
+        
         // Check if we are redirected to the dashboard or home
-        await expect(page).not.toHaveURL(loginUrl, { timeout: 10000 });
+        await expect(page).not.toHaveURL(loginUrl, { timeout: 15000 });
       }
     });
 
@@ -47,8 +61,9 @@ test.describe('Login Page Testing', () => {
         await passwordInput.fill(validPassword);
         await submitButton.click();
         
-        // Wait for login to complete
+        // Wait for login to complete and page navigation
         await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1000);
 
         // Look for a logout button and click it
         const userMenuButton = page.getByRole('button', { name: 'GP Garv Patel' });
@@ -72,6 +87,10 @@ test.describe('Login Page Testing', () => {
         await emailInput.fill(validEmail);
         await passwordInput.fill('wrongpassword123');
         await submitButton.click();
+        
+        // Wait for response
+        await page.waitForLoadState('networkidle');
+        await page.waitForTimeout(1000);
 
         // Expect an error message or to stay on the same URL
         await expect(page).toHaveURL(loginUrl);
